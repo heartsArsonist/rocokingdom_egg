@@ -24,7 +24,6 @@
 
 body {
     background: var(--bg) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="1.5" fill="%23e7d6bc" opacity="0.4"/></svg>');
-    background-attachment: fixed;
     font-family: 'Segoe UI', 'Noto Sans', 'PingFang SC', system-ui, sans-serif;
     padding: 20px;
     display: flex;
@@ -44,7 +43,6 @@ body {
     padding: 32px 28px 36px;
     border: 1px solid var(--border);
     margin: 0 auto;
-    backdrop-filter: blur(4px);
 }
 
 /* ========== 头部 ========== */
@@ -525,7 +523,6 @@ body {
     top: 0; left: 0;
     width: 100vw; height: 100vh;
     background: rgba(40, 20, 10, 0.5);
-    backdrop-filter: blur(4px);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -582,6 +579,8 @@ body {
 .modal-body {
     padding: 18px 24px;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     flex: 1 1 auto;
     max-height: 55vh;
     background: #fffefb;
@@ -635,6 +634,12 @@ body {
     display: flex;
     flex-direction: column;
     gap: 10px;
+}
+.load-more-btn {
+    align-self: center;
+    margin: 4px 0 2px;
+    padding: 8px 18px !important;
+    font-size: 0.85rem !important;
 }
 
 .search-result-item {
