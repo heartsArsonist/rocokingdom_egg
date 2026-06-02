@@ -85,6 +85,7 @@
                 <div class="dual-panel">
                     <div class="add-side">
                         <button id="openMaleModalBtn" class="btn btn-outline add-btn">📋 添加雄性</button>
+                        <button id="recommendMaleBtn" class="btn btn-outline add-btn">🧠 智能推荐公精灵</button>
                         <span class="sub-label">输入你实际拥有的数量</span>
                         <button class="clear-btn" id="clearMaleBtn">清空</button>
                     </div>
@@ -95,6 +96,7 @@
                 <div class="stats">
                     <span class="badge" id="maleTotalBadge">库存: 0 只</span>
                 </div>
+                <div id="maleRecommendationArea" class="recommendation-area" style="display:none;"></div>
             </div>
         </div>
 
@@ -167,6 +169,7 @@
         </div>
     </div>
 
+    <script src="male-recommender.js"></script>
     <script src="script.js"></script>
 </body>
 
