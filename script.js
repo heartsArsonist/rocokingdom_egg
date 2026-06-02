@@ -1206,7 +1206,7 @@
                 clusterMaleCoords = [{ x: 0.5, y: 0 }, { x: -0.5, y: 0 }, { x: 0, y: -1 }];
                 clusterFemalePositions = [
                     { x: 1.5, y: 0 }, { x: 1, y: -1 }, { x: -1, y: -1 },
-                    { x: -1.5, y: 0 }, { x: 0, y: -2 }, { x: -0.5, y: 1 }, { x: 0.5, y: 1 },
+                    { x: -1.5, y: 0 }, { x: 0, y: -2 }, { x: 0.5, y: 1 }, { x: -0.5, y: 1 },
                 ];
                 break;
             }
@@ -1243,7 +1243,7 @@
                         clusterMaleCoords = [{ x: 0.5, y: 0 }, { x: -0.5, y: 0 }, { x: 0, y: -1 }];
                         clusterFemalePositions = [
                             { x: 1.5, y: 0 }, { x: 1, y: -1 }, { x: -1, y: -1 },
-                            { x: -1.5, y: 0 }, { x: 0, y: -2 }, { x: -0.5, y: 1 }, { x: 0.5, y: 1 },
+                            { x: -1.5, y: 0 }, { x: 0, y: -2 }, { x: 0.5, y: 1 }, { x: -0.5, y: 1 },
                         ];
                         break;
                     }
@@ -1282,7 +1282,7 @@
                                 clusterMaleCoords = [{ x: 0.5, y: 0 }, { x: -0.5, y: 0 }, { x: 0, y: -1 }];
                                 clusterFemalePositions = [
                                     { x: 1.5, y: 0 }, { x: 1, y: -1 }, { x: -1, y: -1 },
-                                    { x: -1.5, y: 0 }, { x: 0, y: -2 }, { x: -0.5, y: 1 }, { x: 0.5, y: 1 },
+                                    { x: -1.5, y: 0 }, { x: 0, y: -2 }, { x: 0.5, y: 1 },{ x: -0.5, y: 1 }, 
                                 ];
                                 break;
                             }
@@ -1769,7 +1769,13 @@
                 const origIdx = coveredFemaleInstances.indexOf(subFemales[i]);
                 mergedFemaleCoords[origIdx] = best.femaleCoords[i];
             });
-            const clusterFemArr = [...clusterFemaleSet];
+                        // 与子雄性有共同蛋组的雌性排后面（拿较差位置），不影响交配的雌性排前面拿好位置
+            const clusterFemArr = [...clusterFemaleSet].sort((a, b) => {
+                const aCompat = subMales.some(m => compatibleMap.get(m.species).has(coveredFemaleInstances[a].species)) ? 1 : 0;
+                const bCompat = subMales.some(m => compatibleMap.get(m.species).has(coveredFemaleInstances[b].species)) ? 1 : 0;
+                return aCompat - bCompat;
+            });
+
             clusterFemArr.forEach((fi, i) => {
                 if (i < clusterFemalePositions.length) {
                     mergedFemaleCoords[fi] = {
