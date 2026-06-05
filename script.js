@@ -17,6 +17,7 @@
     let groupNames = {};                 // 蛋组ID → 名称
     let specialTagNames = {};            // 特殊标签ID → 名称
     let seasonNames = {};                // 赛季异色ID → 名称
+    let petsData = [];                   // 原始精灵数据，供智能公精灵推荐使用
 
     // 模态框临时状态
     let modalType = null;
@@ -39,6 +40,7 @@
             const resp = await fetch('./data/pets.json?t=' + Date.now());
             if (!resp.ok) throw new Error('pets.json 加载失败');
             const pets = await resp.json();
+            petsData = pets;
             petIds = pets.map(p => p.id);
             petNames = pets.map(p => p.name);
             eggGroups = pets.map(p => p.egg_groups || []);
@@ -139,6 +141,12 @@
         groupNames = { 6: '动物组', 7: '妖精组', 9: '拟人组' };
         seasonNames = { 101: 'S1 暗夜拾光', 102: 'S2 狂欢怪谈' };
         specialTagNames = { ...seasonNames, 1001: '只有雄性', 1002: '只有雌性' };
+        petsData = petIds.map((id, idx) => ({
+            id,
+            name: petNames[idx],
+            egg_groups: eggGroups[idx],
+            special_tags: petTags[idx]
+        }));
         buildCompatibilityMap();
         resetCounters();
         refreshUI();
@@ -208,6 +216,10 @@
 
     /** 刷新状态栏（上限/总量/超限警告） */
     function refreshUI() {
+        if (maleRecommendationFemaleSignature
+            && maleRecommendationFemaleSignature !== getFemaleRecommendationSignature()) {
+            clearMaleRecommendationPlans();
+        }
         const maxF = getMaxFemales();
         const fTotal = getFemaleTotal();
         const mTotal = getMaleStockTotal();
@@ -354,6 +366,7 @@
     const nestCountInput = document.getElementById('nestCount');
     const femaleTotalBadge = document.getElementById('femaleTotalBadge');
     const maleTotalBadge = document.getElementById('maleTotalBadge');
+    const maleRecommendationArea = document.getElementById('maleRecommendationArea');
     const femaleLimitWarn = document.getElementById('femaleLimitWarn');
     const maxFemaleDisplay = document.getElementById('maxFemaleDisplay');
     const capacityHint = document.getElementById('capacityHint');
@@ -373,6 +386,7 @@
     const maleSelectedDisplay = document.getElementById('maleSelectedDisplay');
     const openFemaleModalBtn = document.getElementById('openFemaleModalBtn');
     const openMaleModalBtn = document.getElementById('openMaleModalBtn');
+    const recommendMaleBtn = document.getElementById('recommendMaleBtn');
     const clearFemaleBtn = document.getElementById('clearFemaleBtn');
     const clearMaleBtn = document.getElementById('clearMaleBtn');
     const modalOverlay = document.getElementById('modalOverlay');
@@ -383,6 +397,7 @@
     const searchBox = document.getElementById('searchBox');
     const groupFilter = document.getElementById('groupFilter');
     const seasonFilter = document.getElementById('seasonFilter');
+    let maleRecommendationFemaleSignature = '';
 
     // ╔══════════════════════════════════════════════════════════════╗
     // ║              八、模态框与搜索                                  ║
@@ -658,6 +673,76 @@
         maleNormal.fill(0); maleShiny.fill(0);
         maleCheckboxStates.fill(false);
         refreshUI();
+    });
+
+    function getSelectedFemaleIds() {
+        const femaleIds = [];
+        for (let index = 0; index < petIds.length; index++) {
+            if (femaleNormal[index] + femaleShiny[index] > 0) femaleIds.push(petIds[index]);
+        }
+        return femaleIds;
+    }
+
+    function getFemaleRecommendationSignature() {
+        return getSelectedFemaleIds().join(',');
+    }
+
+    function clearMaleRecommendationPlans() {
+        maleRecommendationArea.innerHTML = '';
+        maleRecommendationArea.style.display = 'none';
+        maleRecommendationFemaleSignature = '';
+    }
+
+    function applyMaleRecommendation(plan) {
+        maleNormal.fill(0); maleShiny.fill(0); maleCheckboxStates.fill(false);
+        for (const male of plan.males) {
+            const index = petIds.indexOf(male.id);
+            if (index === -1) continue;
+            maleNormal[index] = 1;
+            maleCheckboxStates[index] = true;
+        }
+        refreshUI();
+        const maleNames = plan.males.map(male => male.name).join('、') || '无';
+        globalMsg.innerHTML = `<div class="success">✅ 已采用方案 ${plan.rank}：${maleNames}。你仍可手工调整库存。</div>`;
+    }
+
+    function renderMaleRecommendationPlans(plans) {
+        maleRecommendationArea.innerHTML = '<div class="recommendation-title">🧠 公精灵推荐方案</div>';
+        for (const plan of plans) {
+            const card = document.createElement('div');
+            card.className = 'recommendation-card';
+            const maleTags = plan.males.map(male => {
+                const groups = male.egg_groups.map(group => groupNames[group] || group).join('/');
+                return `<span class="recommendation-male">♂ ${male.name}<small>${groups}</small></span>`;
+            }).join('');
+            const uncoveredNames = plan.uncoveredFemaleIds
+                .map(id => petNames[petIds.indexOf(id)] || id)
+                .join('、');
+            card.innerHTML = `
+                <div class="recommendation-card-header">
+                    <strong>方案 ${plan.rank}${plan.isOptimal ? ' · 最少公精灵' : ' · 备选'}</strong>
+                    <span>${plan.coveredFemaleIds.length}/${plan.coveredFemaleIds.length + plan.uncoveredFemaleIds.length} 覆盖</span>
+                </div>
+                <div class="recommendation-males">${maleTags || '<span>无可用公精灵</span>'}</div>
+                ${uncoveredNames ? `<div class="recommendation-warning">无法匹配：${uncoveredNames}</div>` : ''}
+                <button type="button" class="btn btn-outline recommendation-apply">采用此方案</button>
+            `;
+            card.querySelector('.recommendation-apply').addEventListener('click', () => applyMaleRecommendation(plan));
+            maleRecommendationArea.appendChild(card);
+        }
+        maleRecommendationArea.style.display = 'grid';
+    }
+
+    recommendMaleBtn.addEventListener('click', () => {
+        const femaleIds = getSelectedFemaleIds();
+        if (femaleIds.length === 0) {
+            globalMsg.innerHTML = '<div class="warning">🌸 请先选择需要匹配的雌性精灵。</div>';
+            return;
+        }
+        const plans = MaleRecommender.recommendMalePlans(petsData, femaleIds, { maxPlans: 5 });
+        maleRecommendationFemaleSignature = getFemaleRecommendationSignature();
+        renderMaleRecommendationPlans(plans);
+        globalMsg.innerHTML = `<div class="success">🧠 已生成 ${plans.length} 套公精灵方案。请选择一套采用。</div>`;
     });
     modalCloseBtn.addEventListener('click', cancelModal);
     modalCancel.addEventListener('click', cancelModal);
