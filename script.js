@@ -1191,7 +1191,15 @@
                 });
             }
             const compCnt = compFemSet.size;
-            if (n === 2 && compCnt >= 4) {
+            if (n === 2 && compCnt === 4) {
+                clusterMaleSet = new Set(maleIndices);
+                clusterFemaleSet = compFemSet;
+                clusterMaleCoords = [{ x: 0.5, y: 0 }, { x: -0.5, y: 0 }];
+                clusterFemalePositions = [
+                    { x: 1, y: -1 }, { x: 1.5, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 1 },
+                ];
+                break;
+            } else if (n === 2 && compCnt > 4) {
                 clusterMaleSet = new Set(maleIndices);
                 clusterFemaleSet = compFemSet;
                 clusterMaleCoords = [{ x: 0.5, y: 0 }, { x: -0.5, y: 0 }];
@@ -1200,7 +1208,8 @@
                     { x: -1, y: 1 }, { x: -1.5, y: 0 }, { x: -1, y: -1 }, { x: 0, y: -1 },
                 ];
                 break;
-            } else if (n === 3 && compCnt >= 4) {
+            }
+            else if (n === 3 && compCnt >= 4) {
                 clusterMaleSet = new Set(maleIndices);
                 clusterFemaleSet = compFemSet;
                 clusterMaleCoords = [{ x: 0.5, y: 0 }, { x: -0.5, y: 0 }, { x: 0, y: -1 }];
@@ -1282,7 +1291,7 @@
                                 clusterMaleCoords = [{ x: 0.5, y: 0 }, { x: -0.5, y: 0 }, { x: 0, y: -1 }];
                                 clusterFemalePositions = [
                                     { x: 1.5, y: 0 }, { x: 1, y: -1 }, { x: -1, y: -1 },
-                                    { x: -1.5, y: 0 }, { x: 0, y: -2 }, { x: 0.5, y: 1 },{ x: -0.5, y: 1 }, 
+                                    { x: -1.5, y: 0 }, { x: 0, y: -2 }, { x: 0.5, y: 1 }, { x: -0.5, y: 1 },
                                 ];
                                 break;
                             }
@@ -1437,11 +1446,11 @@
         }
 
         /**
-         * 两雄性聚合：按三种情况放置剩余精灵窝
-         * 情况1：有唯一依赖雄性 + 与聚合雌性无共同蛋组 → 雄性(0,-1)，依赖雌性(-1,-1)(0,-2)
-         * 情况2：有唯一依赖雄性 + 与聚合雌性有共同蛋组 → 雄性(-0.5,-1)，依赖雌性(-1.5,-1)(-0.5,-2)
-         * 情况3：无唯一依赖雄性 → 雄性优先 (-0.5,-1)(-1.5,-1)，雌性 (-1.5,0)(-1,1)
-         */
+* 两雄性聚合：按三种情况放置剩余精灵窝
+* 情况1：有唯一依赖雄性 + 与聚合雌性无共同蛋组 → 雄性(0,-1)，依赖雌性按序(0,-2)(-1,-1) 备用(-1.5,0)
+* 情况2：有唯一依赖雄性 + 与聚合雌性有共同蛋组 → 雄性(-0.5,-1)，依赖雌性按序(-0.5,-2)(-1.5,-1) 备用(-1.5,0)
+* 情况3：无唯一依赖雄性 → 雄性优先(-0.5,-1)(-1.5,0)(1,1)，雌性(-1.5,-1)(-1,-2)
+*/
         function tryDeterministicPlacement2Male() {
             if (!isCluster || clusterMaleSet.size !== 2) return null;
             if (subMales.length === 0 && subFemales.length === 0) return { maleCoords: [], femaleCoords: [] };
@@ -1490,33 +1499,37 @@
                 });
 
                 const depCount = depFemales.length;
+
+                // ── depCount = 1~2 ──
                 if (depCount >= 1 && depCount <= 2) {
                     if (otherMales.length > 0) return null;
-                    if (otherFemales.length > 2) return null;
 
                     const mCoords = new Array(subMales.length);
                     const fCoords = new Array(subFemales.length);
 
+                    let femaleSlots;
                     if (maleHasCommon) {
+                        // 情况2：雄性(-0.5,-1)，依赖雌性(-0.5,-2)(-1.5,-1)，备用(-1.5,0)
                         mCoords[udm.mi] = { x: -0.5 + shiftX, y: -1 + shiftY };
-                        const slots = [{ x: -1.5, y: -1 }, { x: -0.5, y: -2 }];
-                        for (let i = 0; i < depCount; i++) {
-                            fCoords[depFemales[i]] = { x: slots[i].x + shiftX, y: slots[i].y + shiftY };
-                        }
+                        femaleSlots = [{ x: -0.5, y: -2 }, { x: -1.5, y: -1 }, { x: -1.5, y: 0 }];
                     } else {
+                        // 情况1：雄性(0,-1)，依赖雌性(0,-2)(-1,-1)，备用(-1.5,0)
                         mCoords[udm.mi] = { x: 0 + shiftX, y: -1 + shiftY };
-                        const slots = [{ x: -1, y: -1 }, { x: 0, y: -2 }];
-                        for (let i = 0; i < depCount; i++) {
-                            fCoords[depFemales[i]] = { x: slots[i].x + shiftX, y: slots[i].y + shiftY };
-                        }
+                        femaleSlots = [{ x: 0, y: -2 }, { x: -1, y: -1 }, { x: -1.5, y: 0 }];
                     }
-                    const otherSlots = [{ x: -1, y: 1 }, { x: -1.5, y: 0 }];
-                    for (let i = 0; i < otherFemales.length; i++) {
-                        fCoords[otherFemales[i]] = { x: otherSlots[i].x + shiftX, y: otherSlots[i].y + shiftY };
+
+                    const allFemOrder = [...depFemales, ...otherFemales];
+                    if (allFemOrder.length > femaleSlots.length) return null;
+                    for (let i = 0; i < allFemOrder.length; i++) {
+                        fCoords[allFemOrder[i]] = {
+                            x: femaleSlots[i].x + shiftX,
+                            y: femaleSlots[i].y + shiftY
+                        };
                     }
                     return { maleCoords: mCoords, femaleCoords: fCoords };
                 }
 
+                // ── depCount = 3 ──
                 if (depCount === 3) {
                     if (otherMales.length > 0) return null;
                     if (otherFemales.length > 0) return null;
@@ -1534,35 +1547,50 @@
                 return null;
             }
 
-            // 情况4：只剩一个雄性、没有雌性 → 放在 (0, 2)
+            // ── 情况4：聚合后只剩一个雄性、没有雌性 → 放在 (-2.5, 0) ──
             if (subMales.length === 1 && subFemales.length === 0) {
                 const mCoords = new Array(1);
-                mCoords[0] = { x: 0 + shiftX, y: 2 + shiftY };
+                mCoords[0] = { x: -2.5 + shiftX, y: 0 + shiftY };
                 return { maleCoords: mCoords, femaleCoords: [] };
             }
 
-            // 情况3：无唯一依赖雄性，剩余 ≤ 4 个
-            if (subMales.length + subFemales.length > 4) return null;
-
+            // ── 情况3：无唯一依赖雄性 ──
+            if (subMales.length + subFemales.length > 5) return null;
 
             const mCoords = new Array(subMales.length);
             const fCoords = new Array(subFemales.length);
+
+            const malePlaceSlots = [
+                { x: -0.5, y: -1 },
+                { x: -1.5, y: 0 },
+                { x: 1, y: 1 }
+            ];
+            const femalePlaceSlots = [
+                { x: -1.5, y: -1 },
+                { x: -1, y: -2 }
+            ];
 
             const sortedMaleIdxs = [...Array(subMales.length).keys()].sort((a, b) => {
                 const aCommon = hasCommonWithClusterFemales(subMales[a].species) ? 0 : 1;
                 const bCommon = hasCommonWithClusterFemales(subMales[b].species) ? 0 : 1;
                 return aCommon - bCommon;
             });
-            const malePlaceSlots = [{ x: -0.5, y: -1 }, { x: -1.5, y: -1 }];
             for (let i = 0; i < sortedMaleIdxs.length; i++) {
-                mCoords[sortedMaleIdxs[i]] = { x: malePlaceSlots[i].x + shiftX, y: malePlaceSlots[i].y + shiftY };
+                mCoords[sortedMaleIdxs[i]] = {
+                    x: malePlaceSlots[i].x + shiftX,
+                    y: malePlaceSlots[i].y + shiftY
+                };
             }
-            const femalePlaceSlots = [{ x: -1.5, y: 0 }, { x: -1, y: 1 }];
             for (let i = 0; i < subFemales.length; i++) {
-                fCoords[i] = { x: femalePlaceSlots[i].x + shiftX, y: femalePlaceSlots[i].y + shiftY };
+                fCoords[i] = {
+                    x: femalePlaceSlots[i].x + shiftX,
+                    y: femalePlaceSlots[i].y + shiftY
+                };
             }
             return { maleCoords: mCoords, femaleCoords: fCoords };
         }
+
+
 
         // ═══════════════════════════════════════════════════════════
         //  阶段二：根据是否聚合走不同求解器
@@ -1769,7 +1797,7 @@
                 const origIdx = coveredFemaleInstances.indexOf(subFemales[i]);
                 mergedFemaleCoords[origIdx] = best.femaleCoords[i];
             });
-                        // 与子雄性有共同蛋组的雌性排后面（拿较差位置），不影响交配的雌性排前面拿好位置
+            // 与子雄性有共同蛋组的雌性排后面（拿较差位置），不影响交配的雌性排前面拿好位置
             const clusterFemArr = [...clusterFemaleSet].sort((a, b) => {
                 const aCompat = subMales.some(m => compatibleMap.get(m.species).has(coveredFemaleInstances[a].species)) ? 1 : 0;
                 const bCompat = subMales.some(m => compatibleMap.get(m.species).has(coveredFemaleInstances[b].species)) ? 1 : 0;
