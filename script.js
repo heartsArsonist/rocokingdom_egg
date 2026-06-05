@@ -1500,10 +1500,8 @@
 
                 const depCount = depFemales.length;
 
-                // ── depCount = 1~2 ──
+                                // ── depCount = 1~2 ──
                 if (depCount >= 1 && depCount <= 2) {
-                    if (otherMales.length > 0) return null;
-
                     const mCoords = new Array(subMales.length);
                     const fCoords = new Array(subFemales.length);
 
@@ -1518,6 +1516,7 @@
                         femaleSlots = [{ x: 0, y: -2 }, { x: -1, y: -1 }, { x: -1.5, y: 0 }];
                     }
 
+                    // 所有雌性按序填入
                     const allFemOrder = [...depFemales, ...otherFemales];
                     if (allFemOrder.length > femaleSlots.length) return null;
                     for (let i = 0; i < allFemOrder.length; i++) {
@@ -1526,8 +1525,33 @@
                             y: femaleSlots[i].y + shiftY
                         };
                     }
+
+                    // 混合场景：其他雄性从精简槽位池分配 (-1.5,0)(1,1)
+                    if (otherMales.length > 0) {
+                        const occupied = new Set();
+                        occupied.add(`${mCoords[udm.mi].x - shiftX},${mCoords[udm.mi].y - shiftY}`);
+                        allFemOrder.forEach(fiIdx => {
+                            if (fCoords[fiIdx]) occupied.add(`${fCoords[fiIdx].x - shiftX},${fCoords[fiIdx].y - shiftY}`);
+                        });
+                        // 混合场景雄性槽位（去掉-0.5,-1，已被唯一依赖雄性在情况2占用）
+                        const extraSlots = [
+                            { x: -1.5, y: 0 },
+                            { x: 1, y: 1 }
+                        ];
+                        const avail = extraSlots.filter(s => !occupied.has(`${s.x},${s.y}`));
+                        if (otherMales.length > avail.length) return null;
+                        for (let i = 0; i < otherMales.length; i++) {
+                            mCoords[otherMales[i]] = {
+                                x: avail[i].x + shiftX,
+                                y: avail[i].y + shiftY
+                            };
+                        }
+                    }
+
                     return { maleCoords: mCoords, femaleCoords: fCoords };
                 }
+
+
 
                 // ── depCount = 3 ──
                 if (depCount === 3) {
