@@ -790,7 +790,12 @@
             }
         }
 
-        // 第二步：贪心补充剩余雄性（优先选未覆盖雌性数最多的）
+                // ═══════════════════════════════════════════════════════════
+        // 第二步：贪心初始解 + 局部搜索优化（Swap 算子）
+        // 评分函数 = maxMatching × 10000 + coveredFemaleCount
+        // 一次打分同时衡量"无闲置雄性"和"覆盖广度"，不再需要
+        // Hall 踢除 → 补名额 → Hall 再查的迂回流程
+        // ═══════════════════════════════════════════════════════════
         const remainingSlots = requiredMales - reservedPairs.length;
         const selectedExtra = [];
         const uncoveredFemaleIds = new Set(femaleInstances.map(f => f.id));
@@ -799,16 +804,43 @@
             femaleInstances.forEach(f => { if (comp.has(f.species)) uncoveredFemaleIds.delete(f.id); });
         });
 
+        // ── 释放雄性回库存（Swap 回退用）──
+        const releaseMale = (species, isShiny) => {
+            if (isShiny) stockShiny.set(species, (stockShiny.get(species) || 0) + 1);
+            else stockNormal.set(species, (stockNormal.get(species) || 0) + 1);
+            totalStock.set(species, (totalStock.get(species) || 0) + 1);
+        };
+
+        // ── 评分函数 ──
+        function evaluateSolution(slots) {
+            const matched = maxMatching(femaleInstances, slots);
+            const covered = new Set();
+            slots.forEach(s => {
+                const comp = compatibleMap.get(s.species);
+                femaleInstances.forEach(f => { if (comp.has(f.species)) covered.add(f.id); });
+            });
+            return { matched, covered: covered.size, score: matched * 10000 + covered.size };
+        }
+
+        // ── 阶段 A：贪心填满所有名额（prefer newC，then total）──
         for (let i = 0; i < remainingSlots; i++) {
             let bestSp = -1, bestNew = -1, bestTotal = -1;
             for (const [mSp, cnt] of totalStock) {
                 if (cnt <= 0) continue;
-                const curCnt = reservedPairs.filter(r => r.maleSpecies === mSp).length + selectedExtra.filter(s => s.species === mSp).length;
+                const curCnt = reservedPairs.filter(r => r.maleSpecies === mSp).length
+                             + selectedExtra.filter(s => s.species === mSp).length;
                 if (curCnt >= (maleLimit.get(mSp) || 0)) continue;
                 const comp = compatibleMap.get(mSp);
                 let newC = 0, total = 0;
-                femaleInstances.forEach(f => { if (comp.has(f.species)) { total++; if (uncoveredFemaleIds.has(f.id)) newC++; } });
-                if (newC > bestNew || (newC === bestNew && total > bestTotal)) { bestNew = newC; bestTotal = total; bestSp = mSp; }
+                femaleInstances.forEach(f => {
+                    if (comp.has(f.species)) {
+                        total++;
+                        if (uncoveredFemaleIds.has(f.id)) newC++;
+                    }
+                });
+                if (newC > bestNew || (newC === bestNew && total > bestTotal)) {
+                    bestNew = newC; bestTotal = total; bestSp = mSp;
+                }
             }
             if (bestSp === -1) break;
             const male = consumeMale(bestSp);
@@ -818,30 +850,84 @@
             femaleInstances.forEach(f => { if (cov.has(f.species)) uncoveredFemaleIds.delete(f.id); });
         }
 
-        // 第三步：补充剩余空位
-        while (selectedExtra.length < remainingSlots && totalStock.size > 0) {
-            let bestSp = -1, bestTotal = -1;
-            for (const [mSp, cnt] of totalStock) {
-                if (cnt <= 0) continue;
-                const curCnt = reservedPairs.filter(r => r.maleSpecies === mSp).length + selectedExtra.filter(s => s.species === mSp).length;
-                if (curCnt >= (maleLimit.get(mSp) || 0)) continue;
-                let total = 0;
-                const comp = compatibleMap.get(mSp);
-                femaleInstances.forEach(f => { if (comp.has(f.species)) total++; });
-                if (total > bestTotal) { bestTotal = total; bestSp = mSp; }
+        let allMaleSlots = reservedPairs.map(rp => ({
+            species: rp.maleSpecies, locked: true, lockedForIds: [], isShiny: rp.isShiny
+        }));
+        selectedExtra.forEach(m => allMaleSlots.push({
+            species: m.species, locked: false, lockedForIds: [], isShiny: m.isShiny
+        }));
+
+        // ── 阶段 B：局部搜索（Hill Climbing + Swap 算子）──
+        let currentSlots = allMaleSlots.map(m => ({ ...m }));
+        let currentEval = evaluateSolution(currentSlots);
+        let improved = true;
+
+        while (improved) {
+            improved = false;
+            for (let i = 0; i < currentSlots.length; i++) {
+                if (currentSlots[i].locked) continue;
+                const oldSp = currentSlots[i].species;
+                const oldIsShiny = currentSlots[i].isShiny;
+
+                for (const [newSp, cnt] of totalStock) {
+                    if (cnt <= 0) continue;
+                    if (newSp === oldSp) continue;
+                    const curCnt = currentSlots.filter(s => s.species === newSp).length;
+                    if (curCnt >= (maleLimit.get(newSp) || 0)) continue;
+
+                    // 尝试交换
+                    const newMale = consumeMale(newSp);
+                    if (!newMale) continue;
+                    const trial = currentSlots.map(s => ({ ...s }));
+                    trial[i] = { species: newSp, locked: false, lockedForIds: [], isShiny: newMale.isShiny };
+
+                    const trialEval = evaluateSolution(trial);
+                    if (trialEval.score > currentEval.score) {
+                        // 接受：释放旧雄性，保留新雄性
+                        releaseMale(oldSp, oldIsShiny);
+                        currentSlots = trial;
+                        currentEval = trialEval;
+                        improved = true;
+                        break; // 跳出物种循环
+                    } else {
+                        // 回退：释放试用的新雄性
+                        releaseMale(newSp, newMale.isShiny);
+                    }
+                }
+                if (improved) break; // 重新从头扫描
             }
-            if (bestSp === -1) break;
-            const male = consumeMale(bestSp);
-            if (!male) break;
-            selectedExtra.push(male);
         }
 
-        let allMaleSlots = reservedPairs.map(rp => ({ species: rp.maleSpecies, locked: true, lockedForIds: [], isShiny: rp.isShiny }));
-        selectedExtra.forEach(m => allMaleSlots.push({ species: m.species, locked: false, lockedForIds: [], isShiny: m.isShiny }));
+        // ── 阶段 C：局部搜索后仍不满足 Hall → 兜底踢除（极少触发）──
+        while (currentSlots.length > 0 && currentEval.matched < currentSlots.length) {
+            let worstIdx = -1, worstOrphans = Infinity, worstCover = Infinity;
+            for (let i = 0; i < currentSlots.length; i++) {
+                if (currentSlots[i].locked) continue;
+                const comp = compatibleMap.get(currentSlots[i].species);
+                const cover = femaleInstances.filter(f => comp.has(f.species)).length;
+                let orphans = 0;
+                for (const f of femaleInstances) {
+                    if (!comp.has(f.species)) continue;
+                    let hasOther = false;
+                    for (let j = 0; j < currentSlots.length; j++) {
+                        if (j === i) continue;
+                        if (compatibleMap.get(currentSlots[j].species).has(f.species)) {
+                            hasOther = true; break;
+                        }
+                    }
+                    if (!hasOther) orphans++;
+                }
+                if (orphans < worstOrphans || (orphans === worstOrphans && cover < worstCover)) {
+                    worstOrphans = orphans; worstCover = cover; worstIdx = i;
+                }
+            }
+            if (worstIdx === -1) break;
+            releaseMale(currentSlots[worstIdx].species, currentSlots[worstIdx].isShiny);
+            currentSlots.splice(worstIdx, 1);
+            currentEval = evaluateSolution(currentSlots);
+        }
 
-        // Hall 条件：移除冗余雄性保证所有雄性都能独立覆盖至少一只雌性
-        const optimized = ensureHallCondition(femaleInstances, allMaleSlots);
-        const finalMaleSlots = optimized.map(m => ({ ...m, lockedForIds: [] }));
+        const finalMaleSlots = currentSlots;
         const emptySlots = requiredMales - finalMaleSlots.length;
 
         calcUniquePairs(femaleInstances, finalMaleSlots);
@@ -869,7 +955,7 @@
         return { femaleInstances, allMaleSlots: finalMaleSlots, emptySlots, uncoveredFemales, maleCoverDetails };
     }
 
-    /** 二分图最大匹配（Hungarian/DFS），用于 Hall 条件检查 */
+    /** 二分图最大匹配（Hungarian/DFS） */
     function maxMatching(females, maleList) {
         const n = maleList.length;
         const adj = Array.from({ length: n }, () => []);
@@ -892,22 +978,7 @@
         return result;
     }
 
-    /** Hall 条件优化：贪婪移除覆盖能力最弱的冗余雄性 */
-    function ensureHallCondition(females, maleSlots) {
-        const males = maleSlots.map((m, i) => ({ ...m, origIdx: i }));
-        while (males.length > 0) {
-            if (maxMatching(females, males) === males.length) break;
-            let worstIdx = -1, worstCover = Infinity;
-            for (let i = 0; i < males.length; i++) {
-                if (males[i].locked) continue;
-                const cover = females.filter(f => compatibleMap.get(males[i].species).has(f.species)).length;
-                if (cover < worstCover) { worstCover = cover; worstIdx = i; }
-            }
-            if (worstIdx === -1) worstIdx = males.length - 1;
-            males.splice(worstIdx, 1);
-        }
-        return males;
-    }
+
 
     /** 渲染配窝推荐结果到 DOM */
     function renderResult(result) {
