@@ -17,25 +17,12 @@
     <div class="container">
         <header class="app-header">
             <h1>🥚 S2 智能配窝助手
-                <a href="https://github.com/heartsArsonist/rocokingdom_egg" target="_blank" title="📙点击可转跳到B站相关视频查看使用说明"
-                    style="display:inline-block;
-            width:24px; height:24px;
-            border-radius:50%;
-            border:2px solid #c28b5c;
-            text-align:center;
-            line-height:20px;
-            color:#c28b5c;
-            font-weight:bold;
-            text-decoration:none;
-            font-size:16px;
-            margin-left:8px;
-            cursor:help;
-            vertical-align:middle;">
-                    ?
-                </a>
+                <a href="https://github.com/heartsArsonist/rocokingdom_egg" target="_blank"
+                    class="header-help-btn"
+                    title="📙点击可转跳到B站相关视频查看使用说明">?</a>
             </h1>
             <span class="author">By 薯多芬上校</span>
-            <span class="version">V5.2</span>
+            <span class="version">V6.0</span>
         </header>
 
         <a href="https://github.com/heartsArsonist/rocokingdom_egg" target="_blank" rel="noopener noreferrer"
@@ -49,62 +36,102 @@
             <button id="importConfigBtn" class="btn btn-outline">📤 导入配置</button>
         </div>
 
-        <div class="control-stack">
-            <!-- 1. 精灵窝数量 -->
-            <div class="control-card nest-card">
-                <label>🏠 精灵窝数量</label>
-                <div class="nest-row-inline">
-                    <input type="number" id="nestCount" value="10" min="1" max="10" step="1">
-                    <span class="unit">个窝</span>
-                    <span class="badge" id="capacityHint">至少留1个雄性窝</span>
+                <!-- ── 精灵库存 ── -->
+        <div class="stock-section">
+            <div class="stock-label">📦 精灵库存</div>
+            <div class="stock-panel">
+                <div class="stock-side">
+                    <button id="openInventoryBtn" class="btn btn-outline">📋 管理仓库</button>
+                    <div class="stock-stats">
+                        <span class="stock-stat" id="invFemaleCount">♀ 0</span>
+                        <span class="stock-stat" id="invMaleCount">♂ 0</span>
+                    </div>
                 </div>
-            </div>
+                <div class="stock-display">
+                                        <div class="stock-filter-row" id="invFilterRow">
+                        <button class="stock-fbtn active" data-filter="gender" data-val="">全部</button>
+                        <button class="stock-fbtn" data-filter="gender" data-val="female">♀</button>
+                        <button class="stock-fbtn" data-filter="gender" data-val="male">♂</button>
+                        <button class="stock-fbtn stock-fbtn-shiny" id="invFilterShiny" data-filter="shiny">⭐异色</button>
+                        <div class="filter-combo" id="stockPersCombo" style="min-width:100px;">
+                            <div class="combo-trigger" id="stockPersTrigger">🎭性格</div>
+                            <div class="combo-dropdown" style="display:none;">
+                                <input class="combo-search" placeholder="搜索…" autocomplete="off">
+                                <div class="combo-list" id="stockPersList"></div>
+                            </div>
+                        </div>
+                        <div class="filter-combo" id="stockBodyCombo" style="min-width:90px;">
+                            <div class="combo-trigger" id="stockBodyTrigger">🏅body</div>
+                            <div class="combo-dropdown" style="display:none;">
+                                <input class="combo-search" placeholder="搜索…" autocomplete="off">
+                                <div class="combo-list" id="stockBodyList"></div>
+                            </div>
+                        </div>
+                        <div class="filter-combo" id="stockVoiceCombo" style="min-width:90px;">
+                            <div class="combo-trigger" id="stockVoiceTrigger">🏅voice</div>
+                            <div class="combo-dropdown" style="display:none;">
+                                <input class="combo-search" placeholder="搜索…" autocomplete="off">
+                                <div class="combo-list" id="stockVoiceList"></div>
+                            </div>
+                        </div>
+                    </div>
 
-            <!-- 2. 雌性选择 -->
-            <div class="control-card female-card">
-                <label>♀️ 雌性精灵</label>
-                <div class="dual-panel">
-                    <div class="add-side">
-                        <button id="openFemaleModalBtn" class="btn btn-outline add-btn">📋 添加雌性</button>
-                        <span class="sub-label">上限 <strong id="maxFemaleDisplay">9</strong> 只</span>
-                        <button class="clear-btn" id="clearFemaleBtn">清空</button>
+                    <div class="stock-cards" id="invCards">
+                        <span class="empty-hint">暂未录入</span>
                     </div>
-                    <div class="display-panel" id="femaleSelectedDisplay">
-                        <span class="empty-hint">暂未选择</span>
-                    </div>
-                </div>
-                <div class="stats">
-                    <span class="badge" id="femaleTotalBadge">总数: 0</span>
-                    <span id="femaleLimitWarn" class="warn-text"></span>
-                </div>
-            </div>
-
-            <!-- 3. 雄性库存 -->
-            <div class="control-card male-card">
-                <label>♂️ 雄性库存</label>
-                <div class="dual-panel">
-                    <div class="add-side">
-                        <button id="openMaleModalBtn" class="btn btn-outline add-btn">📋 添加雄性</button>
-                        <span class="sub-label">输入你实际拥有的数量</span>
-                        <button class="clear-btn" id="clearMaleBtn">清空</button>
-                    </div>
-                    <div class="display-panel" id="maleSelectedDisplay">
-                        <span class="empty-hint">暂未选择</span>
-                    </div>
-                </div>
-                <div class="stats">
-                    <span class="badge" id="maleTotalBadge">库存: 0 只</span>
                 </div>
             </div>
         </div>
 
+
+        <!-- ── 精灵窝 ── -->
+        <div class="control-card nest-card">
+            <label>🏠 精灵窝</label>
+            <div class="nest-panel">
+                <div class="nest-side">
+                    <label class="nest-num-label">窝数量</label>
+                    <input type="number" id="nestCount" value="10" min="1" max="10" step="1">
+                    <span class="badge" id="capacityHint">至少留1个雄性窝</span>
+                </div>
+                <div class="nest-display">
+                    <div class="nest-display-header">
+                        <span class="nest-display-title">已放入雌性</span>
+                        <button id="openNestFemaleBtn" class="btn btn-outline btn-sm">➕ 添加雌性</button>
+                    </div>
+                    <div class="display-panel" id="nestFemaleDisplay">
+                        <span class="empty-hint">暂未放入雌性</span>
+                    </div>
+                    <div class="stats">
+                        <span class="badge" id="femaleTotalBadge">入窝: 0 / 9</span>
+                        <span id="femaleLimitWarn" class="warn-text"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 雄性筛选栏 -->
+        <div class="filter-bar-row" id="maleFilterBar">
+            <span class="filter-label">🔍 筛选雄性：</span>
+            <button id="filterShinyBtn" class="filter-shiny-btn" title="仅异色">⭐ 异色</button>
+            <div class="filter-combo" id="filterPersonalityCombo">
+                <div class="combo-trigger" id="filterPersonalityTrigger">性格：无要求</div>
+                <div class="combo-dropdown" style="display:none;">
+                    <input class="combo-search" id="filterPersonalitySearch" placeholder="搜索性格…" autocomplete="off">
+                    <div class="combo-list" id="filterPersonalityList"></div>
+                </div>
+            </div>
+            <div id="filterMedalCombos" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+            <button id="filterResetBtn" class="filter-reset-btn" title="重置筛选">↺ 重置</button>
+        </div>
+
+        <div id="globalMsg"></div>
+
+        <!-- 生成方案 & 位置图 -->
         <div class="btn-group">
             <button id="generateBtn" class="btn">✨ 智能推荐配窝方案</button>
             <button id="placementBtn" class="btn btn-outline" style="display:none;">📍 生成位置图</button>
             <button id="resetBtn" class="btn btn-outline">🔄 重置全部</button>
         </div>
-
-        <div id="globalMsg"></div>
 
         <div id="resultArea" style="display:none;">
             <div class="result-header">
@@ -124,7 +151,7 @@
                 <button id="exportPlacementBtn" class="btn btn-outline export-btn">📸 导出位置图</button>
             </div>
             <div class="placement-header">
-                <h4>(14x14 每格0.5 |<a style="color: blueviolet;">曼哈顿距离</a>≤2.5 <a style="color: rgb(0, 217, 255);">切比雪夫距离</a>≤2)</h4>
+                <h4>(14x14 每格0.5 |<a class="dist-manhattan">曼哈顿距离</a>≤2.5 <a class="dist-chebyshev">切比雪夫距离</a>≤2)</h4>
             </div>
             <div class="svg-container" id="svgContainer"></div>
             <div class="legend">
@@ -135,7 +162,7 @@
         <footer>⚡ 杜绝雄性闲置 · 唯一依赖优先 · 均衡覆盖</footer>
     </div>
 
-    <!-- 模态弹窗 -->
+    <!-- 主模态弹窗（添加精灵，沿用旧逻辑）-->
     <div class="modal-overlay" id="modalOverlay" style="display:none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -143,19 +170,13 @@
                 <button class="modal-close-btn" id="modalCloseBtn">✕</button>
             </div>
             <div class="modal-body">
-                <!-- 筛选栏：搜索框上方 -->
                 <div class="filter-bar">
-                    <select id="groupFilter" class="filter-select">
-                        <option value="">蛋组</option>
-                    </select>
-                    <select id="seasonFilter" class="filter-select">
-                        <option value="">赛季</option>
-                    </select>
-                    <button id="resetFiltersBtn" class="btn btn-outline" style="padding:8px 14px;">🔄 重置</button>
+                    <select id="groupFilter" class="filter-select"><option value="">蛋组</option></select>
+                    <select id="seasonFilter" class="filter-select"><option value="">赛季</option></select>
+                    <button id="resetFiltersBtn" class="btn btn-outline btn-sm">🔄 重置</button>
                 </div>
-                <!-- 搜索框 -->
                 <div class="search-box" id="searchBox">
-                    <input type="text" id="petSearchInput" placeholder="输入名称关键词（如“喵喵”）" autocomplete="off">
+                    <input type="text" id="petSearchInput" placeholder="输入名称关键词（如"喵喵"）" autocomplete="off">
                     <button id="searchBtn" class="btn">🔍 搜索</button>
                 </div>
                 <div id="searchResults" class="search-results"></div>
@@ -167,7 +188,200 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
-</body>
+    <!-- 管理仓库弹窗 -->
+    <div class="sub-modal-overlay" id="invModalOverlay" style="display:none;">
+        <div class="sub-modal-box" id="invModalBox">
+            <div class="sub-modal-header">
+                <strong class="sub-modal-title">📦 精灵仓库</strong>
+                <button class="sub-modal-close" id="invModalCloseBtn">&times;</button>
+            </div>
+            <div class="inv-modal-top">
+                <button id="invAddMaleBtn" class="btn btn-outline btn-sm">➕ 添加雄性</button>
+                <button id="invAddFemaleBtn" class="btn btn-outline btn-sm">➕ 添加雌性</button>
+            </div>
+            <div class="inv-modal-filters" id="invModalFilters">
+                <button class="inv-fbtn active" data-mfilter="gender" data-val="">全部</button>
+                <button class="inv-fbtn" data-mfilter="gender" data-val="female">♀</button>
+                <button class="inv-fbtn" data-mfilter="gender" data-val="male">♂</button>
+                <button class="inv-fbtn inv-fbtn-shiny" id="invModalFilterShiny" data-mfilter="shiny">⭐异色</button>
+                <div class="filter-combo" id="invModalPersCombo" style="min-width:100px;">
+                    <div class="combo-trigger" id="invModalPersTrigger">🎭性格</div>
+                    <div class="combo-dropdown" style="display:none;">
+                        <input class="combo-search" placeholder="搜索…" autocomplete="off">
+                        <div class="combo-list" id="invModalPersList"></div>
+                    </div>
+                </div>
+                <div class="filter-combo" id="invModalBodyCombo" style="min-width:90px;">
+                    <div class="combo-trigger" id="invModalBodyTrigger">🏅body</div>
+                    <div class="combo-dropdown" style="display:none;">
+                        <input class="combo-search" placeholder="搜索…" autocomplete="off">
+                        <div class="combo-list" id="invModalBodyList"></div>
+                    </div>
+                </div>
+                <div class="filter-combo" id="invModalVoiceCombo" style="min-width:90px;">
+                    <div class="combo-trigger" id="invModalVoiceTrigger">🏅voice</div>
+                    <div class="combo-dropdown" style="display:none;">
+                        <input class="combo-search" placeholder="搜索…" autocomplete="off">
+                        <div class="combo-list" id="invModalVoiceList"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="padding:6px 18px;">
+                <input id="invModalSearch" class="sub-modal-search-input" type="text" placeholder="🔍 搜索精灵名称…">
+            </div>
+            <div class="sub-modal-body" id="invModalList" style="max-height:42vh;"></div>
+            <div class="sub-modal-footer">
+                <button class="btn-cancel" id="invModalCancelBtn">关闭</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- 入库精灵编辑小弹窗 -->
+    <div id="invEditOverlay" class="inv-edit-overlay" style="display:none;">
+        <div class="inv-edit-box">
+            <div class="inv-edit-title" id="invEditTitle"></div>
+            <div class="inv-edit-row"><label>数量</label><input type="number" id="invEditQty" min="0" max="99"></div>
+            <div class="inv-edit-row"><label>性格</label><select id="invEditPers"><option value="">无</option></select></div>
+            <div class="inv-edit-row"><label>body奖牌</label><select id="invEditBody"><option value="">无</option></select></div>
+            <div class="inv-edit-row"><label>voice奖牌</label><select id="invEditVoice"><option value="">无</option></select></div>
+                        <div class="inv-edit-btns">
+                <button class="btn-danger" id="invEditDelete" style="margin-right:auto;">🗑 删除</button>
+                <button class="btn-cancel" id="invEditCancel">取消</button>
+                <button class="btn" id="invEditSave">保存</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 添加雌性到窝弹窗 -->
+    <div class="sub-modal-overlay" id="nestFemaleModalOverlay" style="display:none;">
+        <div class="sub-modal-box" id="nestFemaleModalBox">
+            <div class="sub-modal-header">
+                <strong class="sub-modal-title">➕ 添加雌性入窝</strong>
+                <button class="sub-modal-close" id="nestFemaleModalCloseBtn">&times;</button>
+            </div>
+            <div class="nest-modal-top">
+                <button id="nestModeToggle" class="btn btn-outline btn-sm">📋 从库存雌性中选取</button>
+                <span class="sub-label" id="nestModeLabel">当前：全部精灵（搜索后显示）</span>
+            </div>
+                        <div style="padding:6px 18px;display:flex;gap:8px;">
+                <select id="nestEggGroupFilter" class="filter-select" style="flex:1;">
+                    <option value="">蛋组</option>
+                </select>
+                <select id="nestSeasonFilter" class="filter-select" style="flex:1;">
+                    <option value="">赛季</option>
+                </select>
+            </div>
+
+            <div id="nestModalFilters" style="display:none;padding:6px 18px;gap:6px;flex-wrap:wrap;">
+                <button class="stock-fbtn stock-fbtn-shiny" id="nestModalFilterShiny">⭐异色</button>
+                <div class="filter-combo" id="nestModalPersCombo" style="min-width:100px;">
+                    <div class="combo-trigger" id="nestModalPersTrigger">🎭性格</div>
+                    <div class="combo-dropdown" style="display:none;"><input class="combo-search" placeholder="搜索…" autocomplete="off"><div class="combo-list" id="nestModalPersList"></div></div>
+                </div>
+                <div class="filter-combo" id="nestModalBodyCombo" style="min-width:90px;">
+                    <div class="combo-trigger" id="nestModalBodyTrigger">🏅body</div>
+                    <div class="combo-dropdown" style="display:none;"><input class="combo-search" placeholder="搜索…" autocomplete="off"><div class="combo-list" id="nestModalBodyList"></div></div>
+                </div>
+                <div class="filter-combo" id="nestModalVoiceCombo" style="min-width:90px;">
+                    <div class="combo-trigger" id="nestModalVoiceTrigger">🏅voice</div>
+                    <div class="combo-dropdown" style="display:none;"><input class="combo-search" placeholder="搜索…" autocomplete="off"><div class="combo-list" id="nestModalVoiceList"></div></div>
+                </div>
+            </div>
+            <div style="padding:6px 18px;">
+                <input id="nestFemaleSearch" class="sub-modal-search-input" type="text" placeholder="🔍 搜索精灵名称…">
+            </div>
+            <div class="sub-modal-body" id="nestFemaleResults" style="max-height:30vh;"></div>
+            <div style="padding:6px 18px;border-top:1px solid #e0e0e0;font-weight:600;">已选雌性：</div>
+            <div style="padding:0 18px;display:flex;flex-wrap:wrap;gap:6px;min-height:36px;" id="nestFemaleSelected"></div>
+            <div class="sub-modal-footer">
+                <button class="btn-cancel" id="nestFemaleModalCancel">取消</button>
+                <button class="btn" id="nestFemaleModalConfirm">✅ 确认</button>
+            </div>
+        </div>
+            <!-- 全部精灵模式选属性小弹窗 -->
+    <div id="nestAttrOverlay" class="inv-edit-overlay" style="display:none;">
+        <div class="inv-edit-box">
+            <div class="inv-edit-title" id="nestAttrTitle"></div>
+            <div class="inv-edit-row">
+                <label>异色</label>
+                <button id="nestAttrShiny" class="filter-shiny-btn" style="padding:3px 10px;font-size:0.8rem;" onclick="this.classList.toggle('active')">⭐异色</button>
+            </div>
+            <div class="inv-edit-row"><label>性格</label><select id="nestAttrPers"><option value="">无</option></select></div>
+            <div class="inv-edit-row"><label>body奖牌</label><select id="nestAttrBody"><option value="">无</option></select></div>
+            <div class="inv-edit-row"><label>voice奖牌</label><select id="nestAttrVoice"><option value="">无</option></select></div>
+            <div class="inv-edit-btns">
+                <button class="btn-cancel" onclick="cancelNestAttr()">取消</button>
+                <button class="btn" onclick="confirmNestAttr()">✅ 添加</button>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- 替换 / 性格 / 奖牌弹窗保持不变 -->
+    <div class="sub-modal-overlay" id="replaceModalOverlay" style="display:none;">
+        <div class="sub-modal-box">
+            <div class="sub-modal-header">
+                <strong class="sub-modal-title" id="replaceModalTitle">🔄 替换雄性</strong>
+                <button class="sub-modal-close" id="replaceModalCloseBtn">&times;</button>
+            </div>
+            <div class="sub-modal-info" id="replaceModalCurrent"></div>
+            <div class="sub-modal-search">
+                <div id="replaceFilterRow" class="replace-filter-row"></div>
+                <input id="replaceSearchInput" class="sub-modal-search-input" type="text" placeholder="🔍 搜索可替换雄性…">
+            </div>
+            <div class="sub-modal-body" id="replaceModalList">
+                <div class="sub-modal-empty">加载中…</div>
+            </div>
+            <div class="sub-modal-footer">
+                <button class="btn-cancel" id="replaceModalCancel">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sub-modal-overlay" id="personalityModalOverlay" style="display:none;">
+        <div class="sub-modal-box">
+            <div class="sub-modal-header">
+                <strong class="sub-modal-title" id="personalityModalTitle">🎭 选择性格</strong>
+                <button class="sub-modal-close" id="personalityModalCloseBtn">&times;</button>
+            </div>
+            <div class="sub-modal-info" id="personalityModalInfo"></div>
+            <div class="sub-modal-search">
+                <select id="personalityFilter" class="sub-modal-select"><option value="">全部增益</option></select>
+            </div>
+            <div class="sub-modal-body" id="personalityModalList"></div>
+            <div class="sub-modal-footer">
+                <button class="btn-danger" id="personalityModalClear">清除选择</button>
+                <button class="btn-cancel" id="personalityModalCancel">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sub-modal-overlay" id="medalModalOverlay" style="display:none;">
+        <div class="sub-modal-box">
+            <div class="sub-modal-header">
+                <strong class="sub-modal-title" id="medalModalTitle">🏅 选择奖牌</strong>
+                <button class="sub-modal-close" id="medalModalCloseBtn">&times;</button>
+            </div>
+            <div class="sub-modal-info" id="medalModalInfo"></div>
+            <div class="sub-modal-body" id="medalModalList"></div>
+            <div class="sub-modal-footer">
+                <button class="btn-danger" id="medalModalClear">清除选择</button>
+                <button class="btn-cancel" id="medalModalCancel">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/state.js"></script>
+    <script src="js/dataLoader.js"></script>
+    <script src="js/uiHelpers.js"></script>
+    <script src="js/recommend.js"></script>
+    <script src="js/replace.js"></script>
+    <script src="js/placement.js"></script>
+    <script src="js/svgRender.js"></script>
+    <script src="js/importExport.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
 </html>

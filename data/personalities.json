@@ -1,0 +1,44 @@
+{
+  "生命": [
+    { "name": "沉默", "decrease": "物攻" },
+    { "name": "平和", "decrease": "魔攻" },
+    { "name": "优郁", "decrease": "物防" },
+    { "name": "粗心", "decrease": "魔防" },
+    { "name": "踏实", "decrease": "速度" }
+  ],
+  "物攻": [
+    { "name": "大胆", "decrease": "物防" },
+    { "name": "调皮", "decrease": "魔防" },
+    { "name": "勇敢", "decrease": "速度" },
+    { "name": "逞强", "decrease": "生命" },
+    { "name": "固执", "decrease": "魔攻" }
+  ],
+  "魔攻": [
+    { "name": "聪明", "decrease": "物攻" },
+    { "name": "专注", "decrease": "物防" },
+    { "name": "偏执", "decrease": "魔防" },
+    { "name": "冷静", "decrease": "速度" },
+    { "name": "理性", "decrease": "生命" }
+  ],
+  "速度": [
+    { "name": "胆小", "decrease": "物攻" },
+    { "name": "开朗", "decrease": "魔攻" },
+    { "name": "急躁", "decrease": "物防" },
+    { "name": "莽撞", "decrease": "魔防" },
+    { "name": "热情", "decrease": "生命" }
+  ],
+  "物防": [
+    { "name": "稳重", "decrease": "物攻" },
+    { "name": "天真", "decrease": "魔攻" },
+    { "name": "悠闲", "decrease": "速度" },
+    { "name": "懒散", "decrease": "魔防" },
+    { "name": "坦率", "decrease": "生命" }
+  ],
+  "魔防": [
+    { "name": "警惕", "decrease": "物攻" },
+    { "name": "害羞", "decrease": "魔攻" },
+    { "name": "温顺", "decrease": "物防" },
+    { "name": "慎重", "decrease": "速度" },
+    { "name": "焦虑", "decrease": "生命" }
+  ]
+}
