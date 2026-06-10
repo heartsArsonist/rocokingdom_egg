@@ -354,7 +354,11 @@ function generatePlacement() {
         if (subMales.length + subFemales.length > 5) return null;
         var mCoordsC3 = new Array(subMales.length);
         var fCoordsC3 = new Array(subFemales.length);
-        var malePlaceSlots = [{ x: -0.5, y: -1 }, { x: -1.5, y: 0 }, { x: 1, y: 1 }];
+        if (subMales.length === 3 && subFemales.length === 0) {
+            malePlaceSlots = [{ x: -0.5, y: -1 }, { x: -1.5, y: 0 }, { x: 2, y: 1 }];
+        } else {
+            malePlaceSlots = [{ x: -0.5, y: -1 }, { x: -1.5, y: 0 }, { x: 1, y: 1 }];
+        }
         var femalePlaceSlots = [{ x: -1.5, y: -1 }, { x: -1, y: -2 }];
         var sortedMaleIdxs = Array.from({ length: subMales.length }, function (_, i) { return i; }).sort(function (a, b) {
             return (hasCommonWithClusterFemales(subMales[a].species) ? 0 : 1) - (hasCommonWithClusterFemales(subMales[b].species) ? 0 : 1);

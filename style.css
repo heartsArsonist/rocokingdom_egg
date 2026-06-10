@@ -1260,8 +1260,8 @@ body {
 }
 .stock-card-count {
     position: absolute;
-    top: 2px;
-    right: 6px;
+    top: -4px;
+    right: 0px;
     font-size: 0.65rem;
     font-weight: 700;
     color: var(--accent);

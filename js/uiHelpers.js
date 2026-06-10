@@ -268,12 +268,12 @@ function renderInvModalList() {
     container.innerHTML = '';
     if (filtered.length === 0) { container.innerHTML = '<div class="sub-modal-empty">暂无匹配精灵</div>'; return; }
 
-    // 分组显示
+        // 分组显示
     var grouped = {};
-    filtered.forEach(function (inst, idx) {
+    filtered.forEach(function (inst) {
         var key = inst.species + '|' + inst.gender + '|' + inst.shiny + '|' + (inst.personality || '') + '|' + medalsKey(inst.medals);
-        if (!grouped[key]) grouped[key] = { species: inst.species, gender: inst.gender, shiny: inst.shiny, personality: inst.personality, medals: inst.medals, indices: [] };
-        grouped[key].indices.push(idx);
+        if (!grouped[key]) grouped[key] = { species: inst.species, gender: inst.gender, shiny: inst.shiny, personality: inst.personality, medals: inst.medals, count: 0 };
+        grouped[key].count++;
     });
 
     Object.values(grouped).forEach(function (g) {
@@ -281,14 +281,17 @@ function renderInvModalList() {
         card.className = 'inv-modal-card';
         card.innerHTML = renderInvCardContent(g);
         var countBadge = document.createElement('span');
-        countBadge.className = 'stock-card-count'; countBadge.textContent = '×' + g.indices.length;
+        countBadge.className = 'stock-card-count';
+        countBadge.textContent = '×' + g.count;
         card.appendChild(countBadge);
 
-        card.addEventListener('click', function () {
-            openInvEditPopup(g.species, g.gender, g.shiny, g.personality, g.medals, g.indices.length);
+        card.addEventListener('click', function() {
+            openInvEditPopup(g.species, g.gender, g.shiny, g.personality, g.medals, g.count);
         });
         container.appendChild(card);
     });
+
+
 }
 
 // ── 库存编辑小弹窗 ──
@@ -491,7 +494,19 @@ function performNestSearch() {
         else grouped[key] = { species: src.species, shiny: src.shiny, personality: src.personality, medals: src.medals || {}, count: 1 };
     });
 
+        // ── 统计 nestModalSelected 中已选计数 ──
+    var selectedCounts = {};
+    nestModalSelected.forEach(function(f) {
+        var k = f.species + '|' + (f.shiny?1:0) + '|' + (f.personality||'') + '|' + medalsKey(f.medals);
+        selectedCounts[k] = (selectedCounts[k] || 0) + 1;
+    });
+
     Object.values(grouped).forEach(function (g) {
+        var cardKey = g.species + '|' + (g.shiny?1:0) + '|' + (g.personality||'') + '|' + medalsKey(g.medals);
+        var used = selectedCounts[cardKey] || 0;
+        var remaining = g.count - used;
+        if (remaining <= 0 && nestModalIsInvMode) return;
+
         var card = document.createElement('div');
         card.className = 'nest-select-card';
         var star = g.shiny ? '⭐' : '';
@@ -502,20 +517,27 @@ function performNestSearch() {
         card.innerHTML = '<div class="stock-card-top">♀️ ' + petNames[g.species] + ' ' + star + ' <span class="stock-card-groups">' + groups + '</span></div><div class="stock-card-bottom">' + (attrHtml || '&nbsp;') + '</div>';
 
         var badge = document.createElement('span');
-        badge.className = 'stock-card-count'; badge.textContent = '×' + g.count;
+        badge.className = 'stock-card-count';
+        badge.textContent = nestModalIsInvMode ? ('×' + remaining) : ('×' + g.count);
         card.appendChild(badge);
 
-        (function (species, shiny, personality, medals) {
+        (function (species, shiny, personality, medals, originalCount) {
             card.addEventListener('click', function () {
                 if (nestModalIsInvMode) {
-                    // 库存模式：直接添加
+                    var kk = species + '|' + (shiny?1:0) + '|' + (personality||'') + '|' + medalsKey(medals);
+                    var curUsed = 0;
+                    nestModalSelected.forEach(function(f) {
+                        var fk = f.species + '|' + (f.shiny?1:0) + '|' + (f.personality||'') + '|' + medalsKey(f.medals);
+                        if (fk === kk) curUsed++;
+                    });
+                    if (curUsed >= originalCount) return;
                     addNestFemale(species, shiny, personality, medals);
+                    performNestSearch();
                 } else {
-                    // 全部精灵模式：弹出属性选择
                     openNestAttrPopup(species);
                 }
             });
-        })(g.species, g.shiny, g.personality, g.medals);
+        })(g.species, g.shiny, g.personality, g.medals, g.count);
 
         container.appendChild(card);
     });
@@ -560,6 +582,7 @@ function addNestFemale(species, shiny, personality, medals) {
     renderNestModalSelected();
 }
 
+
 function renderNestModalSelected() {
     var container = document.getElementById('nestFemaleSelected');
     container.innerHTML = '';
@@ -573,6 +596,7 @@ function renderNestModalSelected() {
         tag.innerHTML = '<span>♀️ ' + petNames[f.species] + ' ' + star + '</span>' + attrHtml + '<button class="tag-remove" data-i="' + i + '">✕</button>';
         tag.querySelector('.tag-remove').addEventListener('click', function (e) {
             e.stopPropagation(); nestModalSelected.splice(parseInt(this.dataset.i), 1); renderNestModalSelected();
+            performNestSearch();
         });
         container.appendChild(tag);
     });
