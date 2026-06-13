@@ -68,6 +68,7 @@ function clusterToBlockedFineCells(clusterCoords) {
 function generatePlacement() {
     if (!lastResultData || lastResultData.error) return;
     var res = lastResultData;
+    reseedRandomFromResult(res);
     var originalFemaleInstances = res.femaleInstances;
     var uncoveredFemales = res.uncoveredFemales;
 
@@ -359,12 +360,14 @@ function generatePlacement() {
         } else {
             malePlaceSlots = [{ x: -0.5, y: -1 }, { x: -1.5, y: 0 }, { x: 1, y: 1 }];
         }
-        var femalePlaceSlots = [{ x: -1.5, y: -1 }, { x: -1, y: -2 }];
+        var femalePlaceSlots = [{ x: -1.5, y: -1 }, { x: -1, y: -2 }, { x: -2, y: -2 }, { x: 0, y: -2 }, { x: -2.5, y: -1 }, { x: -0.5, y: -2.5 }];
+
         var sortedMaleIdxs = Array.from({ length: subMales.length }, function (_, i) { return i; }).sort(function (a, b) {
             return (hasCommonWithClusterFemales(subMales[a].species) ? 0 : 1) - (hasCommonWithClusterFemales(subMales[b].species) ? 0 : 1);
         });
         for (var si3 = 0; si3 < sortedMaleIdxs.length; si3++) { mCoordsC3[sortedMaleIdxs[si3]] = { x: malePlaceSlots[si3].x + shiftX, y: malePlaceSlots[si3].y + shiftY }; }
-        for (var fiC3 = 0; fiC3 < subFemales.length; fiC3++) { fCoordsC3[fiC3] = { x: femalePlaceSlots[fiC3].x + shiftX, y: femalePlaceSlots[fiC3].y + shiftY }; }
+        for (var fiC3 = 0; fiC3 < subFemales.length && fiC3 < femalePlaceSlots.length; fiC3++) { fCoordsC3[fiC3] = { x: femalePlaceSlots[fiC3].x + shiftX, y: femalePlaceSlots[fiC3].y + shiftY }; }
+
         return { maleCoords: mCoordsC3, femaleCoords: fCoordsC3 };
     }
 
@@ -596,9 +599,9 @@ function solvePlacement(females, males, maleNearbyTargets, maleCompatCount, male
             var x, y, tries = 0;
             if (useCenterBias && (maleUniqueCount[mi] > 0 || maleCompatCount[mi] >= 4)) {
                 var availableCenters = centerPositions.filter(function (p) { return !occupied.has(p.y * GS + p.x); });
-                if (availableCenters.length > 0) { var rand = Math.floor(Math.random() * availableCenters.length); x = availableCenters[rand].x; y = availableCenters[rand].y; }
-                else { do { x = Math.floor(Math.random() * GS); y = Math.floor(Math.random() * GS); tries++; } while (occupied.has(y * GS + x) && tries < 100); }
-            } else { do { x = Math.floor(Math.random() * GS); y = Math.floor(Math.random() * GS); tries++; } while (occupied.has(y * GS + x) && tries < 100); }
+                if (availableCenters.length > 0) { var rand = Math.floor(myRandom() * availableCenters.length); x = availableCenters[rand].x; y = availableCenters[rand].y; }
+                else { do { x = Math.floor(myRandom() * GS); y = Math.floor(myRandom() * GS); tries++; } while (occupied.has(y * GS + x) && tries < 100); }
+            } else { do { x = Math.floor(myRandom() * GS); y = Math.floor(myRandom() * GS); tries++; } while (occupied.has(y * GS + x) && tries < 100); }
             if (tries >= 100) { fail = true; break; }
             occupied.add(y * GS + x); maleCoords[mi] = { x: x, y: y };
         }
@@ -738,17 +741,17 @@ function solvePlacementFine(females, freeMales, maleNearbyTargets, maleCompatCou
                     if (biasCands && biasCands.length > 0) {
                         var dedup = new Map(); biasCands.forEach(function (c) { dedup.set(c.y * keyStride + c.x, c); });
                         var uniq = Array.from(dedup.values());
-                        var rand = Math.floor(Math.random() * Math.min(uniq.length, 30));
+                        var rand = Math.floor(myRandom() * Math.min(uniq.length, 30));
                         gx = uniq[rand].x; gy = uniq[rand].y; placed = true;
                     } else range += 2;
                 }
                 if (!placed) { fail = true; break; }
             } else if (useCenterBias && (maleUniqueCount[mi] > 0 || maleCompatCount[mi] >= 4)) {
                 var availCenter = centerPositions.filter(function (p) { return !isOccupied(occupied, p.x, p.y); });
-                if (availCenter.length > 0) { var rand2 = Math.floor(Math.random() * availCenter.length); gx = availCenter[rand2].x; gy = availCenter[rand2].y; placed = true; }
+                if (availCenter.length > 0) { var rand2 = Math.floor(myRandom() * availCenter.length); gx = availCenter[rand2].x; gy = availCenter[rand2].y; placed = true; }
             }
             if (!placed) {
-                do { gx = 1 + Math.floor(Math.random() * (FINE_GRID - 1)); gy = 1 + Math.floor(Math.random() * (FINE_GRID - 1)); tries++; } while (isOccupied(occupied, gx, gy) && tries < 200);
+                do { gx = 1 + Math.floor(myRandom() * (FINE_GRID - 1)); gy = 1 + Math.floor(myRandom() * (FINE_GRID - 1)); tries++; } while (isOccupied(occupied, gx, gy) && tries < 200);
                 if (tries >= 200) { fail = true; break; }
             }
             blockChebyshev(occupied, gx, gy, chebyshevBlockR);
@@ -776,6 +779,27 @@ function solvePlacementFine(females, freeMales, maleNearbyTargets, maleCompatCou
 }
 
 // ── 十七、半格坐标的最近空闲搜索 ──
+/** 用方案数据的字符串哈希生成独立随机种子，隔离外部影响 */
+var _randState = 0;
+function reseedRandomFromResult(res) {
+    var str = '';
+    res.femaleInstances.forEach(function(f) { str += f.species + '|' + f.id + ','; });
+    res.allMaleSlots.forEach(function(m) { str += m.species + '|' + (m.isShiny ? 1 : 0) + ','; });
+    // 简单字符串哈希 → 32 位种子
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+        var ch = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + ch;
+        hash |= 0;
+    }
+    _randState = Math.abs(hash) || 1;
+}
+
+/** 替代 myRandom()，使用独立的线性同余生成器 */
+function myRandom() {
+    _randState = (_randState * 1664525 + 1013904223) | 0;
+    return (_randState >>> 0) / 4294967296;
+}
 
 function findNearestFreePositionHalf(desiredX, desiredY, occupiedSet) {
     var fineX = Math.round(desiredX * 2), fineY = Math.round(desiredY * 2);
