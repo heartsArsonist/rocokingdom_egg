@@ -2242,7 +2242,10 @@
   {
     "id": 3228,
     "name": "友爱天天",
-    "egg_groups": [],
+    "egg_groups": [
+      5,
+      7
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -2250,7 +2253,10 @@
   {
     "id": 3229,
     "name": "友爱星飞",
-    "egg_groups": [],
+    "egg_groups": [
+      5,
+      7
+    ],
     "evolves_from_id": 3228,
     "has_shiny": null,
     "special_tags": []
@@ -2258,7 +2264,9 @@
   {
     "id": 3230,
     "name": "加灵",
-    "egg_groups": [],
+    "egg_groups": [
+      1
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -2266,7 +2274,9 @@
   {
     "id": 3231,
     "name": "加益",
-    "egg_groups": [],
+    "egg_groups": [
+      1
+    ],
     "evolves_from_id": 3230,
     "has_shiny": null,
     "special_tags": []
@@ -2274,7 +2284,9 @@
   {
     "id": 3232,
     "name": "加尔",
-    "egg_groups": [],
+    "egg_groups": [
+      1
+    ],
     "evolves_from_id": 3231,
     "has_shiny": null,
     "special_tags": []
@@ -2799,7 +2811,10 @@
   {
     "id": 3321,
     "name": "觅觅蝠",
-    "egg_groups": [],
+    "egg_groups": [
+      2,
+      5
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -2807,7 +2822,10 @@
   {
     "id": 3322,
     "name": "翻翻蝠",
-    "egg_groups": [],
+    "egg_groups": [
+      2,
+      5
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -2815,7 +2833,10 @@
   {
     "id": 3323,
     "name": "夜游魔",
-    "egg_groups": [],
+    "egg_groups": [
+      2,
+      5
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -2950,7 +2971,9 @@
   {
     "id": 3341,
     "name": "雪灵兽",
-    "egg_groups": [],
+    "egg_groups": [
+      6
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -2958,16 +2981,20 @@
   {
     "id": 3342,
     "name": "幻雪兽",
-    "egg_groups": [],
-    "evolves_from_id": null,
+    "egg_groups": [
+      6
+    ],
+    "evolves_from_id": 3341,
     "has_shiny": null,
     "special_tags": []
   },
   {
     "id": 3343,
     "name": "饮雪狂兽",
-    "egg_groups": [],
-    "evolves_from_id": null,
+    "egg_groups": [
+      6
+    ],
+    "evolves_from_id": 3342,
     "has_shiny": null,
     "special_tags": []
   },
@@ -3007,7 +3034,10 @@
   {
     "id": 3347,
     "name": "芽眼魔",
-    "egg_groups": [],
+    "egg_groups": [
+      2,
+      7
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -3015,7 +3045,10 @@
   {
     "id": 3348,
     "name": "叶眼魔",
-    "egg_groups": [],
+    "egg_groups": [
+      2,
+      7
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -3023,7 +3056,10 @@
   {
     "id": 3349,
     "name": "障眼魔",
-    "egg_groups": [],
+    "egg_groups": [
+      2,
+      7
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -3506,7 +3542,10 @@
   {
     "id": 3402,
     "name": "碎晶蝎",
-    "egg_groups": [],
+    "egg_groups": [
+      4,
+      11
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -3514,7 +3553,10 @@
   {
     "id": 3403,
     "name": "晶尾蝎",
-    "egg_groups": [],
+    "egg_groups": [
+      4,
+      11
+    ],
     "evolves_from_id": null,
     "has_shiny": null,
     "special_tags": []
@@ -3522,7 +3564,10 @@
   {
     "id": 3404,
     "name": "蝎子王",
-    "egg_groups": [],
+    "egg_groups": [
+      4,
+      11
+    ],
     "evolves_from_id": 3403,
     "has_shiny": null,
     "special_tags": []
@@ -5650,7 +5695,10 @@
   {
     "id": 3706,
     "name": "蜜果骸",
-    "egg_groups": [],
+    "egg_groups": [
+      7,
+      8
+    ],
     "evolves_from_id": null,
     "has_shiny": 103,
     "special_tags": []
@@ -5658,7 +5706,10 @@
   {
     "id": 3707,
     "name": "半朽蜜果灵",
-    "egg_groups": [],
+    "egg_groups": [
+      7,
+      8
+    ],
     "evolves_from_id": 3706,
     "has_shiny": 103,
     "special_tags": []
@@ -5930,6 +5981,150 @@
     ],
     "evolves_from_id": 3747,
     "has_shiny": 103,
+    "special_tags": []
+  },
+  {
+    "id": 3749,
+    "name": "莫比乌乌",
+    "egg_groups": [
+      7,
+      14
+    ],
+    "evolves_from_id": null,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3750,
+    "name": "克莱因龙",
+    "egg_groups": [
+      7,
+      14
+    ],
+    "evolves_from_id": 3749,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  
+  {
+    "id": 3751,
+    "name": "叮叮卯",
+    "egg_groups": [
+      4,
+      15
+    ],
+    "evolves_from_id": null,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3752,
+    "name": "叮叮钥",
+    "egg_groups": [
+      4,
+      15
+    ],
+    "evolves_from_id": 3751,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3753,
+    "name": "霹雳宝宝",
+    "egg_groups": [
+      2,
+      9
+    ],
+    "evolves_from_id": null,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3754,
+    "name": "雷鸣小子",
+    "egg_groups": [
+      2,
+      9
+    ],
+    "evolves_from_id": 3753,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3755,
+    "name": "雷神之子",
+    "egg_groups": [
+      2,
+      9
+    ],
+    "evolves_from_id": 3754,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3756,
+    "name": "森豆丁",
+    "egg_groups": [
+      2,
+      9
+    ],
+    "evolves_from_id": null,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3757,
+    "name": "森蛮人",
+    "egg_groups": [
+      2,
+      9
+    ],
+    "evolves_from_id": 3756,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3758,
+    "name": "森巨人",
+    "egg_groups": [
+      2,
+      9
+    ],
+    "evolves_from_id": 3757,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3759,
+    "name": "火豆丁",
+    "egg_groups": [
+      2,
+      9
+    ],
+    "evolves_from_id": null,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3760,
+    "name": "火蛮人",
+    "egg_groups": [
+      2,
+      9
+    ],
+    "evolves_from_id": 3759,
+    "has_shiny": null,
+    "special_tags": []
+  },
+  {
+    "id": 3761,
+    "name": "火巨人",
+    "egg_groups": [
+      2,
+      9
+    ],
+    "evolves_from_id": 3760,
+    "has_shiny": null,
     "special_tags": []
   },
   {
