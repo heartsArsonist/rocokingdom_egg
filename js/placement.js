@@ -250,7 +250,7 @@ function generatePlacement() {
 
     // ── 确定性放置函数 ──
 
-    function tryDeterministicPlacement3Male() {
+        function tryDeterministicPlacement3Male() {
         if (!isCluster || clusterMaleSet.size !== 3) return null;
         var totalRemaining = subMales.length + subFemales.length;
         if (totalRemaining === 0) return { maleCoords: [], femaleCoords: [] };
@@ -265,6 +265,71 @@ function generatePlacement() {
         }
         var mCoords = new Array(subMales.length);
         var fCoords = new Array(subFemales.length);
+
+        // ═══ subMales === 2：精确约束逻辑 ═══
+        if (subMales.length === 2) {
+            // 预判聚合雌性在 clusterFemalePositions[0]=(1.5,0) 和 [1]=(1,-1) 的物种
+            // 复用合并阶段（第489行）的排序：与子问题雄性不兼容的排前面，拿到靠前槽位
+            var clusterFemArrForCheck = Array.from(clusterFemaleSet).sort(function (a, b) {
+                var aC = subMales.some(function (m) { return compatibleMap.get(m.species).has(coveredFemaleInstances[a].species); }) ? 1 : 0;
+                var bC = subMales.some(function (m) { return compatibleMap.get(m.species).has(coveredFemaleInstances[b].species); }) ? 1 : 0;
+                return aC - bC;
+            });
+            var cfPos0Species = (clusterFemArrForCheck.length > 0) ? coveredFemaleInstances[clusterFemArrForCheck[0]].species : null;
+            var cfPos1Species = (clusterFemArrForCheck.length > 1) ? coveredFemaleInstances[clusterFemArrForCheck[1]].species : null;
+
+            var allSlots = [
+                { x: -0.5, y: 1 },   // slot 0
+                { x: 0.5, y: 1 },    // slot 1
+                { x: 0, y: 2 }       // slot 2
+            ];
+            var used = [false, false, false];
+
+            // 判定唯一雄性
+            var uniqueMaleIdx = -1;
+            if (subMaleUniqueCount[0] > 0) uniqueMaleIdx = 0;
+            if (subMaleUniqueCount[1] > 0) uniqueMaleIdx = (uniqueMaleIdx >= 0) ? -2 : 1; // -2 = 冲突，两只都唯一
+
+            if (uniqueMaleIdx >= 0) {
+                // 情况1：有唯一雄性 → 放 slot 1 (0.5, 1)，另一只放 slot 0 (-0.5, 1)
+                mCoords[uniqueMaleIdx] = { x: allSlots[1].x + shiftX, y: allSlots[1].y + shiftY };
+                used[1] = true;
+                var otherMaleIdx = 1 - uniqueMaleIdx;
+                mCoords[otherMaleIdx] = { x: allSlots[0].x + shiftX, y: allSlots[0].y + shiftY };
+                used[0] = true;
+            } else {
+                // 情况2：两只都不是唯一 → 默认 slot 0 + slot 1
+                mCoords[0] = { x: allSlots[0].x + shiftX, y: allSlots[0].y + shiftY };
+                used[0] = true;
+                mCoords[1] = { x: allSlots[1].x + shiftX, y: allSlots[1].y + shiftY };
+                used[1] = true;
+
+                // 判定 slot1 雄性是否跟 (1.5,0) 和 (1,-1) 两只聚类雌性都不兼容
+                var slot1MaleSpecies = subMales[1].species;
+                var compatWithPos0 = cfPos0Species !== null && compatibleMap.get(slot1MaleSpecies).has(cfPos0Species);
+                var compatWithPos1 = cfPos1Species !== null && compatibleMap.get(slot1MaleSpecies).has(cfPos1Species);
+
+                if (!compatWithPos0 && !compatWithPos1) {
+                    // 移动雄性到 (-1.5, -2)，释放 slot 1
+                    mCoords[1] = { x: -1.5 + shiftX, y: -2 + shiftY };
+                    used[1] = false;
+                    // 下方雌性放置循环会自动把 slot2 (0,2) 的雌性补到 slot1 (0.5,1)
+                }
+            }
+
+            // 雌性填充剩余空槽
+            var fi3 = 0;
+            for (var s = 0; s < allSlots.length && fi3 < subFemales.length; s++) {
+                if (!used[s]) {
+                    fCoords[fi3] = { x: allSlots[s].x + shiftX, y: allSlots[s].y + shiftY };
+                    used[s] = true;
+                    fi3++;
+                }
+            }
+            return { maleCoords: mCoords, femaleCoords: fCoords };
+        }
+
+        // ═══ subMales < 2：保持原有逻辑 ═══
         var maleIdxs = Array.from({ length: subMales.length }, function (_, i) { return i; }).sort(function (a, b) {
             var aC = hasCommonWithClusterFemales(subMales[a].species) ? 0 : 1;
             var bC = hasCommonWithClusterFemales(subMales[b].species) ? 0 : 1;
@@ -276,12 +341,13 @@ function generatePlacement() {
             var slotIdx = i;
             if (slotIdx < 2) { mCoords[maleIdxs[i]] = { x: allSlots[slotIdx].x + shiftX, y: allSlots[slotIdx].y + shiftY }; used[slotIdx] = true; }
         }
-        var fi3 = 0;
-        for (var s = 0; s < allSlots.length && fi3 < subFemales.length; s++) {
-            if (!used[s]) { fCoords[fi3] = { x: allSlots[s].x + shiftX, y: allSlots[s].y + shiftY }; used[s] = true; fi3++; }
+        var fi4 = 0;
+        for (var s = 0; s < allSlots.length && fi4 < subFemales.length; s++) {
+            if (!used[s]) { fCoords[fi4] = { x: allSlots[s].x + shiftX, y: allSlots[s].y + shiftY }; used[s] = true; fi4++; }
         }
         return { maleCoords: mCoords, femaleCoords: fCoords };
     }
+
 
     function tryDeterministicPlacement2Male() {
         if (!isCluster || clusterMaleSet.size !== 2) return null;

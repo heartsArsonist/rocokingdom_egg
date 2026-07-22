@@ -1,4 +1,4 @@
-<h1 align="center">🥚 S2 智能配窝助手 V6.1</h1>
+<h1 align="center">🥚 S2 智能配窝助手 V7.1</h1>
 
 <p align="center">
   <strong>杜绝♂️雄性闲置 · 唯一依赖优先 · 均衡覆盖</strong><br>
